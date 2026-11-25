@@ -124,7 +124,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Watermark Bawah */
     .watermark {
       text-align: center;
       padding: 16px;
@@ -142,7 +141,7 @@
       <img src="/icon-192.png" alt="Avatar" />
       <div>
         <h1>KINDLY LEARNING</h1>
-        <div class="status" id="dbStatus">● Menghubungkan MongoDB...</div>
+        <div class="status" id="dbStatus">● Menghubungkan Database...</div>
       </div>
     </div>
     <div class="badge" id="totalBadge">0 Kisi</div>
@@ -191,11 +190,11 @@
         const res = await fetch('/api/index?t=' + Date.now());
         const json = await res.json();
         if (json.ok) {
-          document.getElementById('dbStatus').textContent = '● MongoDB Terhubung';
+          document.getElementById('dbStatus').textContent = '● Database Terhubung';
           updateBadge(json.data.length, animasi);
         }
       } catch (e) {
-        document.getElementById('dbStatus').textContent = '● Gagal terhubung DB';
+        document.getElementById('dbStatus').textContent = '● Gagal terhubung Database';
       }
     }
 
@@ -236,7 +235,7 @@
       btn.disabled = true;
       btn.className = 'btn-kirim loading';
       btn.innerHTML = '<div class="spinner"></div><span>Mengirim ke Database...</span>';
-      setStatus('loading', '⏳ Sedang membaca & mengunggah file ke MongoDB...');
+      setStatus('loading', '⏳ Sedang membaca & mengunggah file ke Database...');
 
       const reader = new FileReader();
       reader.onload = async (evt) => {
@@ -278,7 +277,7 @@
             const masuk = json.inserted || items.length;
             btn.className = 'btn-kirim success';
             btn.innerHTML = '<span>✓ Terkirim ke Database</span>';
-            setStatus('success', `✅ Berhasil! +${masuk} kisi-kisi (${namaModul}) telah masuk ke database.`);
+            setStatus('success', `✅ Berhasil! +${masuk} kisi-kisi (${namaModul}) telah masuk ke Database.`);
 
             selectedFile = null;
             document.getElementById('excelFile').value = '';
@@ -293,7 +292,7 @@
             btn.className = 'btn-kirim';
             btn.innerHTML = '<span>Kirim ke Database</span>';
             btn.disabled = false;
-            setStatus('error', '❌ Gagal menyimpan ke MongoDB.');
+            setStatus('error', '❌ Gagal menyimpan ke Database.');
           }
         } catch (err) {
           btn.className = 'btn-kirim';
