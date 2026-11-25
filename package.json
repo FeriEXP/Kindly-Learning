@@ -1,11 +1,8 @@
 {
   "name": "kindly-learning",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "version": "2.0.0",
+  "description": "KINDLY LEARNING + Alfa Smart Answer Sync",
   "dependencies": {
-    "express": "^4.18.2",
-    "mongodb": "^6.0.0"
+    "mongodb": "^6.9.0"
   }
 }
