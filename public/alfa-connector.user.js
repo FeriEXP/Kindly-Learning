@@ -10,7 +10,7 @@
 (function () {
   if (document.getElementById('kindly-alfa-panel')) return;
 
-  const API_URL = 'https://kindly-learning2.vercel.app/api/index';
+  const API_URL = 'https://kindly-learning.vercel.app/api/index';
   let dbSoal = [];
 
   const panel = document.createElement('div');
