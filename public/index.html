@@ -2,322 +2,244 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>KINDLY LEARNING</title>
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#e11d48" />
-  <link rel="icon" href="/icon-192.png" type="image/png" />
-  <link rel="apple-touch-icon" href="/icon-512.png" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="/icon-192.png" />
+  <meta name="theme-color" content="#d92b3a" />
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #0f172a; color: #f8fafc; padding-bottom: 40px; }
+    header { background: linear-gradient(135deg, #d92b3a, #991b1b); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
+    .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
+    .status { font-size: 12px; color: #bbf7d0; margin-top: 2px; }
+    .badge { background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .container { max-width: 720px; margin: 0 auto; padding: 14px; }
+    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: #1e293b; border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 14px; }
+    .tab { border: none; background: transparent; color: #94a3b8; padding: 10px 4px; border-radius: 9px; font-weight: 600; font-size: 12px; cursor: pointer; }
+    .tab.active { background: #d92b3a; color: #fff; }
+    .row { display: flex; gap: 8px; margin-bottom: 12px; }
+    input, select, textarea { width: 100%; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+    .modul-tag { display: inline-block; background: #334155; color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-bottom: 6px; font-weight: 600; }
+    .soal-txt { font-size: 14px; line-height: 1.45; margin-bottom: 8px; }
+    .jwb-txt { background: #064e3b; color: #6ee7b7; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+    .btn { background: #d92b3a; color: #fff; border: none; padding: 11px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; }
+    .btn-green { background: #15803d; }
+    .btn-outline { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+    .hidden { display: none; }
+    code { display: block; background: #020617; padding: 10px; border-radius: 8px; font-size: 11px; overflow-x: auto; color: #38bdf8; margin: 8px 0; }
+  </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen pb-20 font-sans">
-
-  <!-- Header -->
-  <header class="bg-gradient-to-r from-rose-600 to-red-700 p-4 shadow-lg sticky top-0 z-20">
-    <div class="max-w-2xl mx-auto flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <img src="/icon-192.png" alt="Logo" class="w-10 h-10 rounded-full object-cover border-2 border-white/60 shadow" />
-        <div>
-          <h1 class="text-xl font-extrabold tracking-wide text-white">KINDLY LEARNING</h1>
-          <p class="text-xs text-rose-100" id="dbStatus">Menghubungkan MongoDB...</p>
-        </div>
+<body>
+  <header>
+    <div class="brand">
+      <img src="/icon-192.png" alt="Avatar" />
+      <div>
+        <h1>KINDLY LEARNING</h1>
+        <div class="status" id="dbStatus">● Menghubungkan MongoDB...</div>
       </div>
-      <span class="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full" id="totalBadge">0 Soal</span>
     </div>
+    <div class="badge" id="totalBadge">0 Soal</div>
   </header>
 
-  <!-- Main Content -->
-  <main class="max-w-2xl mx-auto p-4 space-y-4">
-
-    <!-- Tab Navigasi -->
-    <div class="grid grid-cols-3 gap-2 bg-slate-800 p-1 rounded-xl">
-      <button onclick="switchTab('belajar')" id="tab-belajar" class="py-2 rounded-lg text-sm font-bold bg-rose-600 text-white transition">Kisi-Kisi</button>
-      <button onclick="switchTab('kuis')" id="tab-kuis" class="py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition">Latihan Kuis</button>
-      <button onclick="switchTab('upload')" id="tab-upload" class="py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition">Upload Excel</button>
+  <div class="container">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('kisi', this)">Kisi-Kisi</button>
+      <button class="tab" onclick="switchTab('kuis', this)">Latihan</button>
+      <button class="tab" onclick="switchTab('upload', this)">Upload</button>
+      <button class="tab" onclick="switchTab('alfa', this)">Alfa Sync</button>
     </div>
 
-    <!-- TAB 1: KISI-KISI -->
-    <section id="view-belajar" class="space-y-3">
-      <div class="flex gap-2">
-        <input type="text" id="searchInput" oninput="filterSoal()" placeholder="Cari kata kunci kisi-kisi..." 
-          class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500" />
-        <select id="categoryFilter" onchange="filterSoal()" 
-          class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-rose-500">
-          <option value="SEMUA">Semua Modul</option>
+    <!-- TAB KISI-KISI -->
+    <div id="tab-kisi">
+      <div class="row">
+        <input type="text" id="searchInput" placeholder="Cari kata kunci soal..." oninput="renderList()" />
+        <select id="modulFilter" style="max-width: 140px;" onchange="renderList()">
+          <option value="ALL">Semua Modul</option>
         </select>
       </div>
-      <div id="soalList" class="space-y-3"></div>
-    </section>
+      <div id="listContainer"></div>
+    </div>
 
-    <!-- TAB 2: LATIHAN KUIS -->
-    <section id="view-kuis" class="hidden space-y-4">
-      <div id="quizContainer" class="bg-slate-800 border border-slate-700 rounded-2xl p-5 space-y-4">
-        <p class="text-center text-slate-400 text-sm">Memuat soal kuis...</p>
+    <!-- TAB LATIHAN KUIS -->
+    <div id="tab-kuis" class="hidden">
+      <div class="card" id="quizBox">
+        <div class="modul-tag" id="qModul">Modul</div>
+        <div class="soal-txt" id="qSoal">Memuat soal...</div>
+        <div class="jwb-txt hidden" id="qJwb"></div>
+        <div class="row" style="margin-top:12px; margin-bottom:0;">
+          <button class="btn btn-outline" onclick="document.getElementById('qJwb').classList.remove('hidden')">Lihat Jawaban</button>
+          <button class="btn" onclick="nextQuiz()">Soal Berikutnya</button>
+        </div>
       </div>
-    </section>
+    </div>
 
-    <!-- TAB 3: UPLOAD EXCEL -->
-    <section id="view-upload" class="hidden space-y-4">
-      <div class="bg-slate-800 border border-slate-700 rounded-2xl p-5 space-y-4">
-        <h2 class="font-bold text-base text-rose-400">Upload Kisi-Kisi ke MongoDB</h2>
-        <p class="text-xs text-slate-300 leading-relaxed">
-          Data yang di-upload akan tersimpan permanen di MongoDB Atlas. Kamu tidak perlu upload ulang saat membuka aplikasi lagi.
+    <!-- TAB UPLOAD EXCEL / MANUAL -->
+    <div id="tab-upload" class="hidden">
+      <div class="card">
+        <h3 style="margin-top:0;">Import Excel / CSV ke MongoDB</h3>
+        <p style="font-size:13px; color:#94a3b8;">Kolom Excel harus memiliki judul: <b>Modul</b>, <b>Soal</b>, dan <b>Jawaban</b>.</p>
+        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="handleExcel(event)" />
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;">Tambah Manual</h3>
+        <input type="text" id="inModul" placeholder="Nama Modul (misal: MONEV / RRAK)" style="margin-bottom:8px;" />
+        <textarea id="inSoal" rows="3" placeholder="Tulis pertanyaan..." style="margin-bottom:8px;"></textarea>
+        <input type="text" id="inJwb" placeholder="Jawaban benar..." style="margin-bottom:10px;" />
+        <button class="btn btn-green" onclick="saveManual()">Simpan ke Database</button>
+      </div>
+    </div>
+
+    <!-- TAB ALFA LEARNING CONNECTOR -->
+    <div id="tab-alfa" class="hidden">
+      <div class="card">
+        <h3 style="margin-top:0; color:#4ade80;">Hubungkan ke Portal Alfa Learning</h3>
+        <p style="font-size:13px; line-height:1.5; color:#cbd5e1;">
+          Pasang Userscript di <b>Kiwi Browser (Tampermonkey)</b> agar panel hijau <b>ALFA SMART ANSWER</b> di halaman Alfa Learning otomatis mengambil database dari server MongoDB ini:
         </p>
-
-        <div class="border-2 border-dashed border-slate-600 rounded-xl p-5 text-center space-y-2">
-          <input type="file" id="excelFile" accept=".xlsx,.xls" class="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-rose-600 file:text-white hover:file:bg-rose-700" />
-        </div>
-
-        <label class="flex items-center gap-2 text-xs text-slate-300">
-          <input type="checkbox" id="replaceOld" class="rounded bg-slate-700 border-slate-600 text-rose-600" />
-          <span>Hapus kisi-kisi lama & ganti dengan file baru ini</span>
-        </label>
-
-        <button onclick="uploadExcel()" id="btnUpload" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl text-sm shadow transition">
-          Simpan ke Database
-        </button>
-
-        <div id="uploadMsg" class="text-xs text-center font-medium"></div>
-
-        <hr class="border-slate-700" />
-
-        <div class="flex justify-between items-center pt-1">
-          <button onclick="downloadTemplate()" class="text-xs text-sky-400 underline font-semibold">
-            Download Template Excel
-          </button>
-          <button onclick="hapusSemua()" class="text-xs text-red-400 underline font-semibold">
-            Kosongkan Database
-          </button>
-        </div>
+        <a href="/alfa-connector.user.js" target="_blank" style="text-decoration:none;">
+          <button class="btn btn-green">Buka / Install Userscript Alfa Learning</button>
+        </a>
+        <p style="font-size:12px; color:#94a3b8; margin-top:12px;">
+          Atau jalankan langsung lewat Address Bar saat membuka halaman kuis Alfa Learning (ketik <code>javascript:</code> lalu tempel kode di bawah):
+        </p>
+        <code id="bookmarkletCode"></code>
+        <button class="btn btn-outline" onclick="copyBookmarklet()">Salin Kode Cepat</button>
       </div>
-    </section>
-
-  </main>
+    </div>
+  </div>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
+    let allData = [];
 
-    let allSoal = [];
-    let quizIndex = 0;
-    let quizScore = 0;
-
-    async function init() {
+    async function loadData() {
       try {
-        const resStatus = await fetch('/api/status');
-        const st = await resStatus.json();
-        if (st.status === 'ok') {
-          document.getElementById('dbStatus').innerText = '● MongoDB Terhubung';
-          document.getElementById('dbStatus').className = 'text-xs text-emerald-300 font-medium';
-        } else {
-          document.getElementById('dbStatus').innerText = '● Error: ' + st.message;
+        const res = await fetch('/api/index');
+        const json = await res.json();
+        if (json.ok) {
+          allData = json.data;
+          document.getElementById('dbStatus').textContent = '● MongoDB Terhubung';
+          document.getElementById('totalBadge').textContent = allData.length + ' Soal';
+          updateModules();
+          renderList();
+          nextQuiz();
         }
       } catch (e) {
-        document.getElementById('dbStatus').innerText = '● Offline / Gagal Konek';
+        document.getElementById('dbStatus').textContent = '● Gagal terhubung DB';
       }
-      await loadSoal();
     }
 
-    async function loadSoal() {
-      const res = await fetch('/api/soal');
-      const data = await res.json();
-      allSoal = data.soal || [];
-      document.getElementById('totalBadge').innerText = allSoal.length + ' Soal';
-
-      const select = document.getElementById('categoryFilter');
-      const currentVal = select.value;
-      select.innerHTML = '<option value="SEMUA">Semua Modul</option>';
-      (data.categories || []).forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.innerText = cat;
-        select.appendChild(opt);
-      });
-      select.value = currentVal || 'SEMUA';
-      filterSoal();
+    function updateModules() {
+      const sel = document.getElementById('modulFilter');
+      const mods = [...new Set(allData.map(x => x.modul).filter(Boolean))];
+      sel.innerHTML = '<option value="ALL">Semua Modul</option>' + mods.map(m => `<option value="${m}">${m}</option>`).join('');
     }
 
-    function filterSoal() {
+    function renderList() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const cat = document.getElementById('categoryFilter').value;
-      const filtered = allSoal.filter(item => {
-        const matchCat = cat === 'SEMUA' || item.kategori === cat;
-        const matchQ = !q || item.pertanyaan.toLowerCase().includes(q) || 
-                       (item.pembahasan && item.pembahasan.toLowerCase().includes(q));
-        return matchCat && matchQ;
-      });
-      renderList(filtered);
-    }
+      const mod = document.getElementById('modulFilter').value;
+      const box = document.getElementById('listContainer');
 
-    function renderList(list) {
-      const container = document.getElementById('soalList');
-      if (list.length === 0) {
-        container.innerHTML = `<div class="bg-slate-800 rounded-xl p-6 text-center text-slate-400 text-sm">Belum ada data kisi-kisi. Silakan buka tab <b>Upload Excel</b>.</div>`;
+      const filtered = allData.filter(x => {
+        const matchMod = mod === 'ALL' || x.modul === mod;
+        const matchQ = !q || x.soal.toLowerCase().includes(q) || x.jawaban.toLowerCase().includes(q);
+        return matchMod && matchQ;
+      });
+
+      if (filtered.length === 0) {
+        box.innerHTML = '<div class="card" style="text-align:center; color:#94a3b8;">Belum ada data kisi-kisi. Silakan buka tab Upload.</div>';
         return;
       }
-      container.innerHTML = list.map((item, idx) => `
-        <div class="bg-slate-800 border border-slate-700/80 rounded-xl p-4 space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-[11px] font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 px-2.5 py-0.5 rounded-md">${item.kategori}</span>
-            <button onclick="hapusSatu('${item._id}')" class="text-xs text-slate-500 hover:text-red-400">Hapus</button>
-          </div>
-          <p class="text-sm font-semibold text-white leading-snug">${idx + 1}. ${item.pertanyaan}</p>
-          ${item.opsiA ? `<p class="text-xs text-slate-300">A. ${item.opsiA}</p>` : ''}
-          ${item.opsiB ? `<p class="text-xs text-slate-300">B. ${item.opsiB}</p>` : ''}
-          ${item.opsiC ? `<p class="text-xs text-slate-300">C. ${item.opsiC}</p>` : ''}
-          ${item.opsiD ? `<p class="text-xs text-slate-300">D. ${item.opsiD}</p>` : ''}
-          <div class="bg-emerald-950/60 border border-emerald-700/50 rounded-lg p-2.5 mt-2">
-            <p class="text-xs font-bold text-emerald-400">Jawaban: ${item.jawaban}</p>
-            ${item.pembahasan ? `<p class="text-xs text-slate-300 mt-1">${item.pembahasan}</p>` : ''}
-          </div>
+
+      box.innerHTML = filtered.slice(0, 100).map(item => `
+        <div class="card">
+          <div class="modul-tag">${item.modul || 'Umum'}</div>
+          <div class="soal-txt">${item.soal}</div>
+          <div class="jwb-txt">✓ ${item.jawaban}</div>
         </div>
       `).join('');
     }
 
-    function switchTab(tab) {
-      ['belajar', 'kuis', 'upload'].forEach(t => {
-        document.getElementById('view-' + t).classList.add('hidden');
-        document.getElementById('tab-' + t).className = 'py-2 rounded-lg text-sm font-bold text-slate-400 hover:text-white transition';
+    function nextQuiz() {
+      if (allData.length === 0) return;
+      const item = allData[Math.floor(Math.random() * allData.length)];
+      document.getElementById('qModul').textContent = item.modul || 'Umum';
+      document.getElementById('qSoal').textContent = item.soal;
+      const jwb = document.getElementById('qJwb');
+      jwb.textContent = '✓ ' + item.jawaban;
+      jwb.classList.add('hidden');
+    }
+
+    async function saveManual() {
+      const modul = document.getElementById('inModul').value || 'Umum';
+      const soal = document.getElementById('inSoal').value.trim();
+      const jawaban = document.getElementById('inJwb').value.trim();
+      if (!soal || !jawaban) return alert('Isi soal dan jawaban dulu!');
+
+      const res = await fetch('/api/index', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ modul, soal, jawaban })
       });
-      document.getElementById('view-' + tab).classList.remove('hidden');
-      document.getElementById('tab-' + tab).className = 'py-2 rounded-lg text-sm font-bold bg-rose-600 text-white transition';
-      if (tab === 'kuis') startQuiz();
-    }
-
-    function startQuiz() {
-      quizIndex = 0;
-      quizScore = 0;
-      renderQuiz();
-    }
-
-    function renderQuiz() {
-      const box = document.getElementById('quizContainer');
-      if (allSoal.length === 0) {
-        box.innerHTML = `<p class="text-center text-sm text-slate-400">Belum ada soal untuk kuis.</p>`;
-        return;
+      const json = await res.json();
+      if (json.ok) {
+        document.getElementById('inSoal').value = '';
+        document.getElementById('inJwb').value = '';
+        alert('Berhasil disimpan ke MongoDB!');
+        loadData();
       }
-      if (quizIndex >= allSoal.length) {
-        box.innerHTML = `
-          <div class="text-center space-y-3 py-4">
-            <h3 class="text-lg font-bold text-emerald-400">Kuis Selesai!</h3>
-            <p class="text-sm text-slate-300">Skor Kamu: <b class="text-white">${quizScore}</b> dari <b>${allSoal.length}</b> soal</p>
-            <button onclick="startQuiz()" class="bg-rose-600 px-5 py-2 rounded-xl text-sm font-bold">Ulangi Kuis</button>
-          </div>
-        `;
-        return;
-      }
-      const q = allSoal[quizIndex];
-      const options = [
-        { label: 'A', text: q.opsiA },
-        { label: 'B', text: q.opsiB },
-        { label: 'C', text: q.opsiC },
-        { label: 'D', text: q.opsiD }
-      ].filter(o => o.text);
-
-      box.innerHTML = `
-        <div class="flex justify-between text-xs text-slate-400">
-          <span>Soal ${quizIndex + 1} / ${allSoal.length}</span>
-          <span>${q.kategori}</span>
-        </div>
-        <p class="text-sm font-bold text-white">${q.pertanyaan}</p>
-        <div class="space-y-2">
-          ${options.length > 0 ? options.map(o => `
-            <button onclick="jawabKuis('${o.label}', '${o.text.replace(/'/g, "\'")}')" 
-              class="w-full text-left bg-slate-700/70 hover:bg-slate-600 p-3 rounded-xl text-xs font-medium transition">
-              <b>${o.label}.</b> ${o.text}
-            </button>
-          `).join('') : `
-            <button onclick="jawabKuis('LIHAT', 'LIHAT')" class="w-full bg-sky-600 p-3 rounded-xl text-xs font-bold">Tampilkan Kunci Jawaban</button>
-          `}
-        </div>
-        <div id="quizFeedback" class="hidden rounded-xl p-3 text-xs space-y-1"></div>
-      `;
     }
 
-    function jawabKuis(label, text) {
-      const q = allSoal[quizIndex];
-      const kunci = q.jawaban.trim().toLowerCase();
-      const benar = kunci === label.toLowerCase() || kunci === text.toLowerCase() || kunci.startsWith(label.toLowerCase() + '.');
-      if (benar) quizScore++;
+    function handleExcel(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        const wb = XLSX.read(evt.target.result, { type: 'binary' });
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+        const items = rows.map(r => ({
+          modul: r.Modul || r.modul || r.MODUL || 'Umum',
+          soal: r.Soal || r.soal || r.SOAL || r.Pertanyaan || '',
+          jawaban: r.Jawaban || r.jawaban || r.JAWABAN || ''
+        })).filter(x => x.soal && x.jawaban);
 
-      const fb = document.getElementById('quizFeedback');
-      fb.classList.remove('hidden');
-      fb.className = benar 
-        ? 'rounded-xl p-3 text-xs space-y-2 bg-emerald-950 border border-emerald-600 text-emerald-200'
-        : 'rounded-xl p-3 text-xs space-y-2 bg-red-950 border border-red-600 text-red-200';
-      fb.innerHTML = `
-        <p class="font-bold">${benar ? '✅ Benar!' : '❌ Kurang Tepat'} — Kunci: ${q.jawaban}</p>
-        ${q.pembahasan ? `<p>${q.pembahasan}</p>` : ''}
-        <button onclick="quizIndex++; renderQuiz();" class="mt-2 bg-white text-slate-900 font-bold px-4 py-1.5 rounded-lg">Soal Berikutnya →</button>
-      `;
-    }
+        if (items.length === 0) return alert('Format kolom tidak cocok. Pastikan ada kolom Soal dan Jawaban.');
 
-    async function uploadExcel() {
-      const fileInput = document.getElementById('excelFile');
-      const msg = document.getElementById('uploadMsg');
-      if (!fileInput.files[0]) {
-        msg.innerHTML = '<span class="text-red-400">Pilih file Excel dulu!</span>';
-        return;
-      }
-      const btn = document.getElementById('btnUpload');
-      btn.disabled = true;
-      btn.innerText = 'Menyimpan ke MongoDB...';
-
-      const formData = new FormData();
-      formData.append('file', fileInput.files[0]);
-      formData.append('replace', document.getElementById('replaceOld').checked);
-
-      try {
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (res.ok) {
-          msg.innerHTML = `<span class="text-emerald-400">✅ ${data.message}</span>`;
-          fileInput.value = '';
-          await loadSoal();
-        } else {
-          msg.innerHTML = `<span class="text-red-400">❌ ${data.error}</span>`;
+        const res = await fetch('/api/index', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          alert(`Berhasil upload ${json.inserted} soal ke MongoDB!`);
+          loadData();
         }
-      } catch (e) {
-        msg.innerHTML = `<span class="text-red-400">❌ Gagal upload: ${e.message}</span>`;
-      } finally {
-        btn.disabled = false;
-        btn.innerText = 'Simpan ke Database';
-      }
+      };
+      reader.readAsBinaryString(file);
     }
 
-    async function hapusSatu(id) {
-      if (!confirm('Hapus soal ini?')) return;
-      await fetch('/api/soal/' + id, { method: 'DELETE' });
-      await loadSoal();
+    function switchTab(name, btn) {
+      ['kisi', 'kuis', 'upload', 'alfa'].forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
+      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + name).classList.remove('hidden');
+      btn.classList.add('active');
     }
 
-    async function hapusSemua() {
-      if (!confirm('Yakin hapus SEMUA kisi-kisi di database?')) return;
-      await fetch('/api/soal', { method: 'DELETE' });
-      await loadSoal();
+    const origin = window.location.origin;
+    const bm = `(function(){var s=document.createElement('script');s.src='${origin}/alfa-connector.user.js?t='+Date.now();document.body.appendChild(s);})();`;
+    document.getElementById('bookmarkletCode').textContent = bm;
+
+    function copyBookmarklet() {
+      navigator.clipboard.writeText('javascript:' + bm);
+      alert('Kode berhasil disalin!');
     }
 
-    function downloadTemplate() {
-      const ws = XLSX.utils.json_to_sheet([
-        {
-          Kategori: 'MONEV',
-          Pertanyaan: 'Apa tujuan utama pelaksanaan MONEV di toko?',
-          'Opsi A': 'Menghitung fisik barang',
-          'Opsi B': 'Monitoring dan evaluasi operasional toko',
-          'Opsi C': 'Membuat jadwal shift',
-          'Opsi D': 'Menghitung kasir',
-          Jawaban: 'B',
-          Pembahasan: 'MONEV dilakukan untuk memantau dan mengevaluasi standar operasional toko.'
-        }
-      ]);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'KisiKisi');
-      XLSX.writeFile(wb, 'Template_Kisi_Kisi_KINDLY_LEARNING.xlsx');
-    }
-
-    init();
+    loadData();
   </script>
 </body>
 </html>
