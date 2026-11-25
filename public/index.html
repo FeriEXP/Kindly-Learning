@@ -10,28 +10,28 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-    body { margin: 0; background: #0f172a; color: #f8fafc; padding-bottom: 40px; }
-    header { background: linear-gradient(135deg, #d92b3a, #991b1b); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; }
+    body { margin: 0; background: #0f172a; color: #f8fafc; }
+    header { background: linear-gradient(135deg, #d92b3a, #991b1b); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
     .brand { display: flex; align-items: center; gap: 10px; }
     .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
     .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
     .status { font-size: 12px; color: #bbf7d0; margin-top: 2px; }
     .badge { background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .container { max-width: 720px; margin: 0 auto; padding: 14px; }
-    .tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: #1e293b; border-radius: 12px; padding: 4px; gap: 4px; margin-bottom: 14px; }
-    .tab { border: none; background: transparent; color: #94a3b8; padding: 10px 4px; border-radius: 9px; font-weight: 600; font-size: 12px; cursor: pointer; }
-    .tab.active { background: #d92b3a; color: #fff; }
-    .row { display: flex; gap: 8px; margin-bottom: 12px; }
-    input, select, textarea { width: 100%; background: #1e293b; border: 1px solid #334155; color: #fff; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
-    .modul-tag { display: inline-block; background: #334155; color: #38bdf8; font-size: 11px; padding: 3px 8px; border-radius: 6px; margin-bottom: 6px; font-weight: 600; }
-    .soal-txt { font-size: 14px; line-height: 1.45; margin-bottom: 8px; }
-    .jwb-txt { background: #064e3b; color: #6ee7b7; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; }
-    .btn { background: #d92b3a; color: #fff; border: none; padding: 11px 16px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 14px; }
-    .btn-green { background: #15803d; }
-    .btn-outline { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
-    .hidden { display: none; }
-    code { display: block; background: #020617; padding: 10px; border-radius: 8px; font-size: 11px; overflow-x: auto; color: #38bdf8; margin: 8px 0; }
+    .container { max-width: 520px; margin: 28px auto; padding: 0 16px; }
+    .upload-box {
+      display: block;
+      background: #1e293b;
+      border: 2px dashed #475569;
+      border-radius: 16px;
+      padding: 36px 20px;
+      text-align: center;
+      cursor: pointer;
+    }
+    .upload-box:active { border-color: #38bdf8; background: #162038; }
+    .upload-box h2 { margin: 0 0 8px; font-size: 18px; }
+    .upload-box p { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
+    input[type="file"] { display: none; }
+    #log { margin-top: 16px; font-size: 14px; text-align: center; font-weight: 600; color: #38bdf8; }
   </style>
 </head>
 <body>
@@ -47,199 +47,92 @@
   </header>
 
   <div class="container">
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab('kisi', this)">Kisi-Kisi</button>
-      <button class="tab" onclick="switchTab('kuis', this)">Latihan</button>
-      <button class="tab" onclick="switchTab('upload', this)">Upload</button>
-      <button class="tab" onclick="switchTab('alfa', this)">Alfa Sync</button>
-    </div>
-
-    <!-- TAB KISI-KISI -->
-    <div id="tab-kisi">
-      <div class="row">
-        <input type="text" id="searchInput" placeholder="Cari kata kunci soal..." oninput="renderList()" />
-        <select id="modulFilter" style="max-width: 140px;" onchange="renderList()">
-          <option value="ALL">Semua Modul</option>
-        </select>
-      </div>
-      <div id="listContainer"></div>
-    </div>
-
-    <!-- TAB LATIHAN KUIS -->
-    <div id="tab-kuis" class="hidden">
-      <div class="card" id="quizBox">
-        <div class="modul-tag" id="qModul">Modul</div>
-        <div class="soal-txt" id="qSoal">Memuat soal...</div>
-        <div class="jwb-txt hidden" id="qJwb"></div>
-        <div class="row" style="margin-top:12px; margin-bottom:0;">
-          <button class="btn btn-outline" onclick="document.getElementById('qJwb').classList.remove('hidden')">Lihat Jawaban</button>
-          <button class="btn" onclick="nextQuiz()">Soal Berikutnya</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB UPLOAD EXCEL / MANUAL -->
-    <div id="tab-upload" class="hidden">
-      <div class="card">
-        <h3 style="margin-top:0;">Import Excel / CSV ke MongoDB</h3>
-        <p style="font-size:13px; color:#94a3b8;">Kolom Excel harus memiliki judul: <b>Modul</b>, <b>Soal</b>, dan <b>Jawaban</b>.</p>
-        <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="handleExcel(event)" />
-      </div>
-      <div class="card">
-        <h3 style="margin-top:0;">Tambah Manual</h3>
-        <input type="text" id="inModul" placeholder="Nama Modul (misal: MONEV / RRAK)" style="margin-bottom:8px;" />
-        <textarea id="inSoal" rows="3" placeholder="Tulis pertanyaan..." style="margin-bottom:8px;"></textarea>
-        <input type="text" id="inJwb" placeholder="Jawaban benar..." style="margin-bottom:10px;" />
-        <button class="btn btn-green" onclick="saveManual()">Simpan ke Database</button>
-      </div>
-    </div>
-
-    <!-- TAB ALFA LEARNING CONNECTOR -->
-    <div id="tab-alfa" class="hidden">
-      <div class="card">
-        <h3 style="margin-top:0; color:#4ade80;">Hubungkan ke Portal Alfa Learning</h3>
-        <p style="font-size:13px; line-height:1.5; color:#cbd5e1;">
-          Pasang Userscript di <b>Kiwi Browser (Tampermonkey)</b> agar panel hijau <b>ALFA SMART ANSWER</b> di halaman Alfa Learning otomatis mengambil database dari server MongoDB ini:
-        </p>
-        <a href="/alfa-connector.user.js" target="_blank" style="text-decoration:none;">
-          <button class="btn btn-green">Buka / Install Userscript Alfa Learning</button>
-        </a>
-        <p style="font-size:12px; color:#94a3b8; margin-top:12px;">
-          Atau jalankan langsung lewat Address Bar saat membuka halaman kuis Alfa Learning (ketik <code>javascript:</code> lalu tempel kode di bawah):
-        </p>
-        <code id="bookmarkletCode"></code>
-        <button class="btn btn-outline" onclick="copyBookmarklet()">Salin Kode Cepat</button>
-      </div>
-    </div>
+    <label class="upload-box" for="excelFile">
+      <h2>Pilih File Kisi-Kisi</h2>
+      <p>Format Excel (.xlsx, .xls) atau CSV.<br/>Tanpa perlu judul kolom — pilih file langsung otomatis tersimpan ke database.</p>
+      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="autoUpload(event)" />
+    </label>
+    <div id="log"></div>
   </div>
 
   <script>
-    let allData = [];
-
-    async function loadData() {
+    async function loadCount() {
       try {
         const res = await fetch('/api/index');
         const json = await res.json();
         if (json.ok) {
-          allData = json.data;
           document.getElementById('dbStatus').textContent = '● MongoDB Terhubung';
-          document.getElementById('totalBadge').textContent = allData.length + ' Soal';
-          updateModules();
-          renderList();
-          nextQuiz();
+          document.getElementById('totalBadge').textContent = json.data.length + ' Soal';
         }
       } catch (e) {
         document.getElementById('dbStatus').textContent = '● Gagal terhubung DB';
       }
     }
 
-    function updateModules() {
-      const sel = document.getElementById('modulFilter');
-      const mods = [...new Set(allData.map(x => x.modul).filter(Boolean))];
-      sel.innerHTML = '<option value="ALL">Semua Modul</option>' + mods.map(m => `<option value="${m}">${m}</option>`).join('');
-    }
-
-    function renderList() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      const mod = document.getElementById('modulFilter').value;
-      const box = document.getElementById('listContainer');
-
-      const filtered = allData.filter(x => {
-        const matchMod = mod === 'ALL' || x.modul === mod;
-        const matchQ = !q || x.soal.toLowerCase().includes(q) || x.jawaban.toLowerCase().includes(q);
-        return matchMod && matchQ;
-      });
-
-      if (filtered.length === 0) {
-        box.innerHTML = '<div class="card" style="text-align:center; color:#94a3b8;">Belum ada data kisi-kisi. Silakan buka tab Upload.</div>';
-        return;
-      }
-
-      box.innerHTML = filtered.slice(0, 100).map(item => `
-        <div class="card">
-          <div class="modul-tag">${item.modul || 'Umum'}</div>
-          <div class="soal-txt">${item.soal}</div>
-          <div class="jwb-txt">✓ ${item.jawaban}</div>
-        </div>
-      `).join('');
-    }
-
-    function nextQuiz() {
-      if (allData.length === 0) return;
-      const item = allData[Math.floor(Math.random() * allData.length)];
-      document.getElementById('qModul').textContent = item.modul || 'Umum';
-      document.getElementById('qSoal').textContent = item.soal;
-      const jwb = document.getElementById('qJwb');
-      jwb.textContent = '✓ ' + item.jawaban;
-      jwb.classList.add('hidden');
-    }
-
-    async function saveManual() {
-      const modul = document.getElementById('inModul').value || 'Umum';
-      const soal = document.getElementById('inSoal').value.trim();
-      const jawaban = document.getElementById('inJwb').value.trim();
-      if (!soal || !jawaban) return alert('Isi soal dan jawaban dulu!');
-
-      const res = await fetch('/api/index', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ modul, soal, jawaban })
-      });
-      const json = await res.json();
-      if (json.ok) {
-        document.getElementById('inSoal').value = '';
-        document.getElementById('inJwb').value = '';
-        alert('Berhasil disimpan ke MongoDB!');
-        loadData();
-      }
-    }
-
-    function handleExcel(e) {
+    function autoUpload(e) {
       const file = e.target.files[0];
+      const log = document.getElementById('log');
       if (!file) return;
+
+      const namaModul = file.name.replace(/\.[^/.]+$/, "");
+      log.style.color = '#38bdf8';
+      log.textContent = 'Membaca & mengunggah otomatis...';
+
       const reader = new FileReader();
       reader.onload = async (evt) => {
-        const wb = XLSX.read(evt.target.result, { type: 'binary' });
-        const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-        const items = rows.map(r => ({
-          modul: r.Modul || r.modul || r.MODUL || 'Umum',
-          soal: r.Soal || r.soal || r.SOAL || r.Pertanyaan || '',
-          jawaban: r.Jawaban || r.jawaban || r.JAWABAN || ''
-        })).filter(x => x.soal && x.jawaban);
+        try {
+          const wb = XLSX.read(evt.target.result, { type: 'binary' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          // header: 1 membaca semua baris sebagai array murni tanpa butuh nama kolom
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        if (items.length === 0) return alert('Format kolom tidak cocok. Pastikan ada kolom Soal dan Jawaban.');
+          const items = [];
+          for (let i = 0; i < rows.length; i++) {
+            const cols = rows[i].map(c => String(c ?? '').trim()).filter(Boolean);
+            if (cols.length < 2) continue;
 
-        const res = await fetch('/api/index', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items })
-        });
-        const json = await res.json();
-        if (json.ok) {
-          alert(`Berhasil upload ${json.inserted} soal ke MongoDB!`);
-          loadData();
+            // Lewati baris pertama jika kebetulan berisi kata "soal" & "jawaban"
+            if (i === 0 && /soal|pertanyaan/i.test(cols[0]) && /jawaban|kunci/i.test(cols[1])) continue;
+
+            if (cols.length >= 3) {
+              items.push({ modul: cols[0], soal: cols[1], jawaban: cols[2] });
+            } else {
+              items.push({ modul: namaModul, soal: cols[0], jawaban: cols[1] });
+            }
+          }
+
+          if (items.length === 0) {
+            log.style.color = '#f87171';
+            log.textContent = 'File kosong atau minimal harus ada 2 kolom (Soal & Jawaban).';
+            return;
+          }
+
+          const res = await fetch('/api/index', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items })
+          });
+          const json = await res.json();
+
+          if (json.ok) {
+            log.style.color = '#4ade80';
+            log.textContent = `✓ Tersimpan ${json.inserted} soal (${namaModul}) ke database!`;
+            loadCount();
+          } else {
+            log.style.color = '#f87171';
+            log.textContent = 'Gagal menyimpan ke MongoDB.';
+          }
+        } catch (err) {
+          log.style.color = '#f87171';
+          log.textContent = 'Error: ' + err.message;
+        } finally {
+          e.target.value = '';
         }
       };
       reader.readAsBinaryString(file);
     }
 
-    function switchTab(name, btn) {
-      ['kisi', 'kuis', 'upload', 'alfa'].forEach(t => document.getElementById('tab-' + t).classList.add('hidden'));
-      document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
-      document.getElementById('tab-' + name).classList.remove('hidden');
-      btn.classList.add('active');
-    }
-
-    const origin = window.location.origin;
-    const bm = `(function(){var s=document.createElement('script');s.src='${origin}/alfa-connector.user.js?t='+Date.now();document.body.appendChild(s);})();`;
-    document.getElementById('bookmarkletCode').textContent = bm;
-
-    function copyBookmarklet() {
-      navigator.clipboard.writeText('javascript:' + bm);
-      alert('Kode berhasil disalin!');
-    }
-
-    loadData();
+    loadCount();
   </script>
 </body>
 </html>
