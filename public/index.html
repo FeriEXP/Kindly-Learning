@@ -16,22 +16,36 @@
     .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
     .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
     .status { font-size: 12px; color: #bbf7d0; margin-top: 2px; }
-    .badge { background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .badge { background: rgba(0,0,0,0.35); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
     .container { max-width: 520px; margin: 28px auto; padding: 0 16px; }
     .upload-box {
       display: block;
       background: #1e293b;
       border: 2px dashed #475569;
       border-radius: 16px;
-      padding: 36px 20px;
+      padding: 32px 20px;
       text-align: center;
       cursor: pointer;
     }
     .upload-box:active { border-color: #38bdf8; background: #162038; }
     .upload-box h2 { margin: 0 0 8px; font-size: 18px; }
     .upload-box p { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
+    .file-name { margin-top: 12px; font-size: 13px; font-weight: 600; color: #38bdf8; word-break: break-all; }
     input[type="file"] { display: none; }
-    #log { margin-top: 16px; font-size: 14px; text-align: center; font-weight: 600; color: #38bdf8; }
+    .btn-kirim {
+      margin-top: 16px;
+      width: 100%;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-kirim:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
+    #log { margin-top: 14px; font-size: 14px; text-align: center; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -43,47 +57,79 @@
         <div class="status" id="dbStatus">● Menghubungkan MongoDB...</div>
       </div>
     </div>
-    <div class="badge" id="totalBadge">0 Soal</div>
+    <div class="badge" id="totalBadge">0 Kisi</div>
   </header>
 
   <div class="container">
     <label class="upload-box" for="excelFile">
       <h2>Pilih File Kisi-Kisi</h2>
-      <p>Format Excel (.xlsx, .xls) atau CSV.<br/>Tanpa perlu judul kolom — pilih file langsung otomatis tersimpan ke database.</p>
-      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="autoUpload(event)" />
+      <p>Format Excel (.xlsx, .xls) atau CSV dari penyimpanan HP.<br/>Tanpa perlu judul kolom.</p>
+      <div class="file-name" id="fileName">Belum ada file dipilih</div>
+      <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="pilihFile(event)" />
     </label>
+
+    <button class="btn-kirim" id="btnKirim" onclick="kirimDatabase()" disabled>Kirim ke Database</button>
     <div id="log"></div>
   </div>
 
   <script>
+    let selectedFile = null;
+
+    function formatRibuan(angka) {
+      if (angka >= 1000) {
+        return (angka / 1000).toFixed(1).replace(/\.0$/, '') + 'k Kisi';
+      }
+      return angka + ' Kisi';
+    }
+
     async function loadCount() {
       try {
         const res = await fetch('/api/index');
         const json = await res.json();
         if (json.ok) {
           document.getElementById('dbStatus').textContent = '● MongoDB Terhubung';
-          document.getElementById('totalBadge').textContent = json.data.length + ' Soal';
+          document.getElementById('totalBadge').textContent = formatRibuan(json.data.length);
         }
       } catch (e) {
         document.getElementById('dbStatus').textContent = '● Gagal terhubung DB';
       }
     }
 
-    function autoUpload(e) {
+    function pilihFile(e) {
       const file = e.target.files[0];
+      const nameEl = document.getElementById('fileName');
+      const btn = document.getElementById('btnKirim');
       const log = document.getElementById('log');
-      if (!file) return;
 
-      const namaModul = file.name.replace(/\.[^/.]+$/, "");
+      log.textContent = '';
+      if (!file) {
+        selectedFile = null;
+        nameEl.textContent = 'Belum ada file dipilih';
+        btn.disabled = true;
+        return;
+      }
+
+      selectedFile = file;
+      nameEl.textContent = '📄 ' + file.name;
+      btn.disabled = false;
+    }
+
+    function kirimDatabase() {
+      if (!selectedFile) return;
+
+      const btn = document.getElementById('btnKirim');
+      const log = document.getElementById('log');
+      const namaModul = selectedFile.name.replace(/\.[^/.]+$/, "");
+
+      btn.disabled = true;
       log.style.color = '#38bdf8';
-      log.textContent = 'Membaca & mengunggah otomatis...';
+      log.textContent = 'Membaca & mengirim kisi-kisi...';
 
       const reader = new FileReader();
       reader.onload = async (evt) => {
         try {
           const wb = XLSX.read(evt.target.result, { type: 'binary' });
           const sheet = wb.Sheets[wb.SheetNames[0]];
-          // header: 1 membaca semua baris sebagai array murni tanpa butuh nama kolom
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
           const items = [];
@@ -91,7 +137,6 @@
             const cols = rows[i].map(c => String(c ?? '').trim()).filter(Boolean);
             if (cols.length < 2) continue;
 
-            // Lewati baris pertama jika kebetulan berisi kata "soal" & "jawaban"
             if (i === 0 && /soal|pertanyaan/i.test(cols[0]) && /jawaban|kunci/i.test(cols[1])) continue;
 
             if (cols.length >= 3) {
@@ -104,6 +149,7 @@
           if (items.length === 0) {
             log.style.color = '#f87171';
             log.textContent = 'File kosong atau minimal harus ada 2 kolom (Soal & Jawaban).';
+            btn.disabled = false;
             return;
           }
 
@@ -116,20 +162,23 @@
 
           if (json.ok) {
             log.style.color = '#4ade80';
-            log.textContent = `✓ Tersimpan ${json.inserted} soal (${namaModul}) ke database!`;
+            log.textContent = `✓ Berhasil mengirim ${json.inserted} kisi-kisi ke database!`;
+            selectedFile = null;
+            document.getElementById('excelFile').value = '';
+            document.getElementById('fileName').textContent = 'Belum ada file dipilih';
             loadCount();
           } else {
             log.style.color = '#f87171';
             log.textContent = 'Gagal menyimpan ke MongoDB.';
+            btn.disabled = false;
           }
         } catch (err) {
           log.style.color = '#f87171';
           log.textContent = 'Error: ' + err.message;
-        } finally {
-          e.target.value = '';
+          btn.disabled = false;
         }
       };
-      reader.readAsBinaryString(file);
+      reader.readAsBinaryString(selectedFile);
     }
 
     loadCount();
