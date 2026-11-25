@@ -10,14 +10,38 @@
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
-    body { margin: 0; background: #0f172a; color: #f8fafc; }
+    body {
+      margin: 0;
+      background: #0f172a;
+      color: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
     header { background: linear-gradient(135deg, #d92b3a, #991b1b); padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
     .brand { display: flex; align-items: center; gap: 10px; }
     .brand img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; }
     .brand h1 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
     .status { font-size: 12px; color: #bbf7d0; margin-top: 2px; }
-    .badge { background: rgba(0,0,0,0.35); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .container { max-width: 520px; margin: 28px auto; padding: 0 16px; }
+    .badge {
+      background: rgba(0,0,0,0.35);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      transition: transform 0.25s ease, background 0.25s ease;
+    }
+    .badge.pop {
+      transform: scale(1.2);
+      background: #16a34a;
+    }
+    .container {
+      width: 100%;
+      max-width: 520px;
+      margin: 28px auto;
+      padding: 0 16px;
+      flex: 1;
+    }
     .upload-box {
       display: block;
       background: #1e293b;
@@ -26,12 +50,14 @@
       padding: 32px 20px;
       text-align: center;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
     .upload-box:active { border-color: #38bdf8; background: #162038; }
     .upload-box h2 { margin: 0 0 8px; font-size: 18px; }
     .upload-box p { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5; }
     .file-name { margin-top: 12px; font-size: 13px; font-weight: 600; color: #38bdf8; word-break: break-all; }
     input[type="file"] { display: none; }
+
     .btn-kirim {
       margin-top: 16px;
       width: 100%;
@@ -43,9 +69,71 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s ease;
     }
     .btn-kirim:disabled { background: #334155; color: #94a3b8; cursor: not-allowed; }
-    #log { margin-top: 14px; font-size: 14px; text-align: center; font-weight: 600; }
+    .btn-kirim.loading { background: #0284c7; color: #fff; }
+    .btn-kirim.success { background: #15803d; color: #fff; }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .status-box {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .status-box.loading {
+      display: block;
+      background: rgba(2, 132, 199, 0.15);
+      border: 1px solid #0284c7;
+      color: #38bdf8;
+    }
+    .status-box.success {
+      display: block;
+      background: rgba(22, 163, 74, 0.15);
+      border: 1px solid #16a34a;
+      color: #4ade80;
+    }
+    .status-box.error {
+      display: block;
+      background: rgba(220, 38, 38, 0.15);
+      border: 1px solid #dc2626;
+      color: #f87171;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Watermark Bawah */
+    .watermark {
+      text-align: center;
+      padding: 16px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #64748b;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
@@ -68,12 +156,18 @@
       <input type="file" id="excelFile" accept=".xlsx,.xls,.csv" onchange="pilihFile(event)" />
     </label>
 
-    <button class="btn-kirim" id="btnKirim" onclick="kirimDatabase()" disabled>Kirim ke Database</button>
-    <div id="log"></div>
+    <button class="btn-kirim" id="btnKirim" onclick="kirimDatabase()" disabled>
+      <span id="btnText">Kirim ke Database</span>
+    </button>
+
+    <div class="status-box" id="statusBox"></div>
   </div>
+
+  <footer class="watermark">Apk By Kindly</footer>
 
   <script>
     let selectedFile = null;
+    let totalKisiSaatIni = 0;
 
     function formatRibuan(angka) {
       if (angka >= 1000) {
@@ -82,26 +176,45 @@
       return angka + ' Kisi';
     }
 
-    async function loadCount() {
+    function updateBadge(jumlahBaru, animasi = false) {
+      totalKisiSaatIni = jumlahBaru;
+      const badge = document.getElementById('totalBadge');
+      badge.textContent = formatRibuan(jumlahBaru);
+      if (animasi) {
+        badge.classList.add('pop');
+        setTimeout(() => badge.classList.remove('pop'), 600);
+      }
+    }
+
+    async function loadCount(animasi = false) {
       try {
-        const res = await fetch('/api/index');
+        const res = await fetch('/api/index?t=' + Date.now());
         const json = await res.json();
         if (json.ok) {
           document.getElementById('dbStatus').textContent = '● MongoDB Terhubung';
-          document.getElementById('totalBadge').textContent = formatRibuan(json.data.length);
+          updateBadge(json.data.length, animasi);
         }
       } catch (e) {
         document.getElementById('dbStatus').textContent = '● Gagal terhubung DB';
       }
     }
 
+    function setStatus(tipe, pesan) {
+      const box = document.getElementById('statusBox');
+      box.className = 'status-box ' + tipe;
+      box.innerHTML = pesan;
+    }
+
     function pilihFile(e) {
       const file = e.target.files[0];
       const nameEl = document.getElementById('fileName');
       const btn = document.getElementById('btnKirim');
-      const log = document.getElementById('log');
+      const box = document.getElementById('statusBox');
 
-      log.textContent = '';
+      box.style.display = 'none';
+      btn.className = 'btn-kirim';
+      btn.innerHTML = '<span>Kirim ke Database</span>';
+
       if (!file) {
         selectedFile = null;
         nameEl.textContent = 'Belum ada file dipilih';
@@ -118,12 +231,12 @@
       if (!selectedFile) return;
 
       const btn = document.getElementById('btnKirim');
-      const log = document.getElementById('log');
       const namaModul = selectedFile.name.replace(/\.[^/.]+$/, "");
 
       btn.disabled = true;
-      log.style.color = '#38bdf8';
-      log.textContent = 'Membaca & mengirim kisi-kisi...';
+      btn.className = 'btn-kirim loading';
+      btn.innerHTML = '<div class="spinner"></div><span>Mengirim ke Database...</span>';
+      setStatus('loading', '⏳ Sedang membaca & mengunggah file ke MongoDB...');
 
       const reader = new FileReader();
       reader.onload = async (evt) => {
@@ -147,9 +260,10 @@
           }
 
           if (items.length === 0) {
-            log.style.color = '#f87171';
-            log.textContent = 'File kosong atau minimal harus ada 2 kolom (Soal & Jawaban).';
+            btn.className = 'btn-kirim';
+            btn.innerHTML = '<span>Kirim ke Database</span>';
             btn.disabled = false;
+            setStatus('error', '❌ File kosong atau tidak memiliki 2 kolom (Soal & Jawaban).');
             return;
           }
 
@@ -161,27 +275,37 @@
           const json = await res.json();
 
           if (json.ok) {
-            log.style.color = '#4ade80';
-            log.textContent = `✓ Berhasil mengirim ${json.inserted} kisi-kisi ke database!`;
+            const masuk = json.inserted || items.length;
+            btn.className = 'btn-kirim success';
+            btn.innerHTML = '<span>✓ Terkirim ke Database</span>';
+            setStatus('success', `✅ Berhasil! +${masuk} kisi-kisi (${namaModul}) telah masuk ke database.`);
+
             selectedFile = null;
             document.getElementById('excelFile').value = '';
             document.getElementById('fileName').textContent = 'Belum ada file dipilih';
-            loadCount();
+            await loadCount(true);
+
+            setTimeout(() => {
+              btn.className = 'btn-kirim';
+              btn.innerHTML = '<span>Kirim ke Database</span>';
+            }, 2500);
           } else {
-            log.style.color = '#f87171';
-            log.textContent = 'Gagal menyimpan ke MongoDB.';
+            btn.className = 'btn-kirim';
+            btn.innerHTML = '<span>Kirim ke Database</span>';
             btn.disabled = false;
+            setStatus('error', '❌ Gagal menyimpan ke MongoDB.');
           }
         } catch (err) {
-          log.style.color = '#f87171';
-          log.textContent = 'Error: ' + err.message;
+          btn.className = 'btn-kirim';
+          btn.innerHTML = '<span>Kirim ke Database</span>';
           btn.disabled = false;
+          setStatus('error', '❌ Error: ' + err.message);
         }
       };
       reader.readAsBinaryString(selectedFile);
     }
 
-    loadCount();
+    loadCount(false);
   </script>
 </body>
 </html>
